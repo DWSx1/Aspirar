@@ -21,6 +21,7 @@ local autoAdmin = false
 local autoExclusive = false
 local autoDivine = false
 local autoIndex = false
+local autoUpgradeBrainrots = false
 
 local selectedMutations = {
     Normal = true,
@@ -32,6 +33,7 @@ local selectedMutations = {
 local indexExpanded = false
 
 local RemoteBank = require(ReplicatedStorage:WaitForChild("RemoteBank"))
+local UpgradeRemote = ReplicatedStorage:WaitForChild("Utilities"):WaitForChild("TypedRemote"):WaitForChild("UpgradeStand")
 
 local draggingButton = false
 local dragInput, dragStart, startPos
@@ -64,6 +66,7 @@ local function saveState()
         autoExclusive = autoExclusive,
         autoDivine = autoDivine,
         autoIndex = autoIndex,
+        autoUpgradeBrainrots = autoUpgradeBrainrots,
         selectedMutations = selectedMutations,
         indexExpanded = indexExpanded
     }
@@ -87,6 +90,7 @@ local function loadState()
         autoExclusive = state.autoExclusive or false
         autoDivine = state.autoDivine or false
         autoIndex = state.autoIndex or false
+        autoUpgradeBrainrots = state.autoUpgradeBrainrots or false
         selectedMutations = state.selectedMutations or {Normal = true, Golden = true, Diamond = true, Rainbow = true}
         indexExpanded = false
     end)
@@ -128,14 +132,14 @@ divider.BackgroundColor3 = Color3.fromRGB(120,120,120)
 divider.Visible = false
 
 local viewport = Instance.new("Frame", menu)
-viewport.Size = UDim2.new(1, 0, 0, 160)
+viewport.Size = UDim2.new(1, 0, 0, 168)
 viewport.Position = UDim2.new(0, 0, 0, 62)
 viewport.BackgroundTransparency = 1
 viewport.ClipsDescendants = true
 viewport.Visible = false
 
 local container = Instance.new("Frame", viewport)
-container.Size = UDim2.new(1, 0, 0, 900)
+container.Size = UDim2.new(1, 0, 0, 950)
 container.BackgroundTransparency = 1
 
 local scrollY = 0
@@ -156,7 +160,7 @@ end)
 viewport.InputChanged:Connect(function(input)
     if scrolling then
         local delta = input.Position.Y - scrollStart
-        scrollY = math.clamp(scrollY + delta, -840, 0)
+        scrollY = math.clamp(scrollY + delta, -882, 0)
         container.Position = UDim2.new(0,0,0,scrollY)
         scrollStart = input.Position.Y
     end
@@ -252,7 +256,7 @@ end
 local function createMutationSelector()
     local selectorContainer = Instance.new("Frame", container)
     selectorContainer.Size = UDim2.new(1, -20, 0, 200)
-    selectorContainer.Position = UDim2.new(0, 10, 0, 645)
+    selectorContainer.Position = UDim2.new(0, 10, 0, 660)
     selectorContainer.BackgroundTransparency = 1
     selectorContainer.Name = "MutationSelectorContainer"
     selectorContainer.Visible = false
@@ -289,14 +293,14 @@ local function createMutationSelector()
         local mutationToggle = Instance.new("TextButton", mutationBox)
         mutationToggle.Size = UDim2.new(0, 40, 0, 20)
         mutationToggle.Position = UDim2.new(1, -50, 0.5, -10)
-        mutationToggle.BackgroundColor3 = selectedMutations[mutation] and Color3.fromRGB(100, 100, 100) or Color3.fromRGB(120, 120, 120)
+        mutationToggle.BackgroundColor3 = selectedMutations[mutation] and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(120, 120, 120)
         mutationToggle.Text = ""
         mutationToggle.Name = mutation .. "Toggle"
         createCorner(mutationToggle, 4)
 
         mutationToggle.MouseButton1Click:Connect(function()
             selectedMutations[mutation] = not selectedMutations[mutation]
-            mutationToggle.BackgroundColor3 = selectedMutations[mutation] and Color3.fromRGB(100, 100, 100) or Color3.fromRGB(120, 120, 120)
+            mutationToggle.BackgroundColor3 = selectedMutations[mutation] and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(120, 120, 120)
             saveState()
         end)
     end
@@ -317,6 +321,7 @@ local toggle9, box9 = createOptionWithBox("Auto Admin", 460)
 local toggle10, box10 = createOptionWithBox("Auto Exclusive", 510)
 local toggle11, box11 = createOptionWithBox("Auto Divine", 560)
 local toggleIndex, boxIndex, arrowButton = createIndexOption(610)
+local toggle12, box12 = createOptionWithBox("Auto Upgrade Brainrots", 680)
 local mutationSelector = createMutationSelector()
 
 local expanded = false
@@ -327,7 +332,7 @@ title.MouseButton1Click:Connect(function()
         title.Text = "Phantom Hub ↓"
         divider.Visible = true
         viewport.Visible = true
-        menu:TweenSize(UDim2.new(0, 260, 0, 280), "Out", "Quad", 0.2, true)
+        menu:TweenSize(UDim2.new(0, 260, 0, 290), "Out", "Quad", 0.2, true)
     else
         title.Text = "Phantom Hub →"
         divider.Visible = false
@@ -352,6 +357,7 @@ updateToggleColor(toggle9, autoAdmin)
 updateToggleColor(toggle10, autoExclusive)
 updateToggleColor(toggle11, autoDivine)
 updateToggleColor(toggleIndex, autoIndex)
+updateToggleColor(toggle12, autoUpgradeBrainrots)
 
 arrowButton.MouseButton1Click:Connect(function()
     indexExpanded = not indexExpanded
@@ -446,6 +452,12 @@ end)
 toggleIndex.MouseButton1Click:Connect(function()
     autoIndex = not autoIndex
     updateToggleColor(toggleIndex, autoIndex)
+    saveState()
+end)
+
+toggle12.MouseButton1Click:Connect(function()
+    autoUpgradeBrainrots = not autoUpgradeBrainrots
+    updateToggleColor(toggle12, autoUpgradeBrainrots)
     saveState()
 end)
 
@@ -564,6 +576,34 @@ local function findTeleportPartInBase(baseModel)
     return nil
 end
 
+local function findAllUpgradeSlots()
+    local baseModel = findPlayerBase()
+    if not baseModel then return {} end
+    
+    local slots = {}
+    
+    local function scanForUpgradeButtons(model)
+        for _, child in pairs(model:GetChildren()) do
+            if child:IsA("Model") then
+                for _, grandchild in pairs(child:GetDescendants()) do
+                    if grandchild.Name == "UpgradeButton" then
+                        if tonumber(child.Name) then
+                            if not table.find(slots, tonumber(child.Name)) then
+                                table.insert(slots, tonumber(child.Name))
+                            end
+                        end
+                        break
+                    end
+                end
+                scanForUpgradeButtons(child)
+            end
+        end
+    end
+    
+    scanForUpgradeButtons(baseModel)
+    return slots
+end
+
 local function collectRarity(rarityType)
     if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
         return
@@ -678,6 +718,21 @@ local function collectIndexEntity()
     end
 end
 
+local function upgradeBrainrots()
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
+        return
+    end
+    
+    local slots = findAllUpgradeSlots()
+    
+    for _, slotNumber in pairs(slots) do
+        pcall(function()
+            UpgradeRemote:FireServer(slotNumber)
+        end)
+        task.wait(0.1)
+    end
+end
+
 task.spawn(function()
     while true do
         if tick() - lastScan > 5 then
@@ -746,6 +801,10 @@ task.spawn(function()
 
         if autoIndex then
             collectIndexEntity()
+        end
+
+        if autoUpgradeBrainrots then
+            upgradeBrainrots()
         end
 
         task.wait(0.4)
