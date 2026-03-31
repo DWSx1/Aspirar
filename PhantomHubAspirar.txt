@@ -31,6 +31,7 @@ local selectedMutations = {
 }
 
 local indexExpanded = false
+local upgradeBrainrotsActive = false
 
 local RemoteBank = require(ReplicatedStorage:WaitForChild("RemoteBank"))
 local UpgradeRemote = ReplicatedStorage:WaitForChild("Utilities"):WaitForChild("TypedRemote"):WaitForChild("UpgradeStand")
@@ -256,7 +257,7 @@ end
 local function createMutationSelector()
     local selectorContainer = Instance.new("Frame", container)
     selectorContainer.Size = UDim2.new(1, -20, 0, 200)
-    selectorContainer.Position = UDim2.new(0, 10, 0, 675)
+    selectorContainer.Position = UDim2.new(0, 10, 0, 715)
     selectorContainer.BackgroundTransparency = 1
     selectorContainer.Name = "MutationSelectorContainer"
     selectorContainer.Visible = false
@@ -398,6 +399,7 @@ end)
 toggle2b.MouseButton1Click:Connect(function()
     autoUpgradeBrainrots = not autoUpgradeBrainrots
     updateToggleColor(toggle2b, autoUpgradeBrainrots)
+    upgradeBrainrotsActive = autoUpgradeBrainrots
     saveState()
 end)
 
@@ -690,6 +692,8 @@ local function collectIndexEntity()
     end
 end
 
+local lastUpgradeTime = 0
+
 task.spawn(function()
     while true do
         if tick() - lastScan > 5 then
@@ -712,13 +716,14 @@ task.spawn(function()
             end)
         end
 
-        if autoUpgradeBrainrots then
-            for i = 1, 1000 do
-                pcall(function()
-                    UpgradeRemote:FireServer(i)
-                    UpgradeRemote:FireServer(i)
-                    UpgradeRemote:FireServer(i)
-                end)
+        if autoUpgradeBrainrots and upgradeBrainrotsActive then
+            if tick() - lastUpgradeTime >= 0.5 then
+                for i = 1, 1000 do
+                    pcall(function()
+                        UpgradeRemote:FireServer(i)
+                    end)
+                end
+                lastUpgradeTime = tick()
             end
         end
 
