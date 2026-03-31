@@ -11,6 +11,7 @@ local dataKey = "PhantomHub_" .. playerID
 
 local autoMoney = false
 local autoUpgrade = false
+local autoUpgradeBrainrots = false
 local autoRebirth = false
 local autoVacuum = false
 local autoSpeed = false
@@ -21,7 +22,6 @@ local autoAdmin = false
 local autoExclusive = false
 local autoDivine = false
 local autoIndex = false
-local autoUpgradeBrainrots = false
 
 local selectedMutations = {
     Normal = true,
@@ -56,6 +56,7 @@ local function saveState()
     local state = {
         autoMoney = autoMoney,
         autoUpgrade = autoUpgrade,
+        autoUpgradeBrainrots = autoUpgradeBrainrots,
         autoRebirth = autoRebirth,
         autoVacuum = autoVacuum,
         autoSpeed = autoSpeed,
@@ -66,7 +67,6 @@ local function saveState()
         autoExclusive = autoExclusive,
         autoDivine = autoDivine,
         autoIndex = autoIndex,
-        autoUpgradeBrainrots = autoUpgradeBrainrots,
         selectedMutations = selectedMutations,
         indexExpanded = indexExpanded
     }
@@ -80,6 +80,7 @@ local function loadState()
         local state = game:GetService("HttpService"):JSONDecode(json)
         autoMoney = state.autoMoney or false
         autoUpgrade = state.autoUpgrade or false
+        autoUpgradeBrainrots = state.autoUpgradeBrainrots or false
         autoRebirth = state.autoRebirth or false
         autoVacuum = state.autoVacuum or false
         autoSpeed = state.autoSpeed or false
@@ -90,7 +91,6 @@ local function loadState()
         autoExclusive = state.autoExclusive or false
         autoDivine = state.autoDivine or false
         autoIndex = state.autoIndex or false
-        autoUpgradeBrainrots = state.autoUpgradeBrainrots or false
         selectedMutations = state.selectedMutations or {Normal = true, Golden = true, Diamond = true, Rainbow = true}
         indexExpanded = false
     end)
@@ -311,17 +311,17 @@ end
 local rejoinButton, rejoinBox = createRejoinButton(10)
 local toggle1, box1 = createOptionWithBox("Auto Money", 60)
 local toggle2, box2 = createOptionWithBox("Auto Upgrade Base", 110)
-local toggle3, box3 = createOptionWithBox("Auto Rebirth", 160)
-local toggle4, box4 = createOptionWithBox("Auto Vacuum", 210)
-local toggle5, box5 = createOptionWithBox("Auto Speed", 260)
-local toggle6, box6 = createOptionWithBox("Auto Carry", 310)
-local toggle7, box7 = createOptionWithBox("Auto Secret", 360)
-local toggle8, box8 = createOptionWithBox("Auto Celestial", 410)
-local toggle9, box9 = createOptionWithBox("Auto Admin", 460)
-local toggle10, box10 = createOptionWithBox("Auto Exclusive", 510)
-local toggle11, box11 = createOptionWithBox("Auto Divine", 560)
+local toggle3, box12 = createOptionWithBox("Auto Upgrade Brainrots", 680)
+local toggle4, box3 = createOptionWithBox("Auto Rebirth", 160)
+local toggle5, box4 = createOptionWithBox("Auto Vacuum", 210)
+local toggle6, box5 = createOptionWithBox("Auto Speed", 260)
+local toggle7, box6 = createOptionWithBox("Auto Carry", 310)
+local toggle8, box7 = createOptionWithBox("Auto Secret", 360)
+local toggle9, box8 = createOptionWithBox("Auto Celestial", 410)
+local toggle10, box9 = createOptionWithBox("Auto Admin", 460)
+local toggle11, box10 = createOptionWithBox("Auto Exclusive", 510)
+local toggle12, box11 = createOptionWithBox("Auto Divine", 560)
 local toggleIndex, boxIndex, arrowButton = createIndexOption(610)
-local toggle12, box12 = createOptionWithBox("Auto Upgrade Brainrots", 680)
 local mutationSelector = createMutationSelector()
 
 local expanded = false
@@ -347,17 +347,17 @@ end
 
 updateToggleColor(toggle1, autoMoney)
 updateToggleColor(toggle2, autoUpgrade)
-updateToggleColor(toggle3, autoRebirth)
-updateToggleColor(toggle4, autoVacuum)
-updateToggleColor(toggle5, autoSpeed)
-updateToggleColor(toggle6, autoCarry)
-updateToggleColor(toggle7, autoSecret)
-updateToggleColor(toggle8, autoCelestial)
-updateToggleColor(toggle9, autoAdmin)
-updateToggleColor(toggle10, autoExclusive)
-updateToggleColor(toggle11, autoDivine)
+updateToggleColor(toggle3, autoUpgradeBrainrots)
+updateToggleColor(toggle4, autoRebirth)
+updateToggleColor(toggle5, autoVacuum)
+updateToggleColor(toggle6, autoSpeed)
+updateToggleColor(toggle7, autoCarry)
+updateToggleColor(toggle8, autoSecret)
+updateToggleColor(toggle9, autoCelestial)
+updateToggleColor(toggle10, autoAdmin)
+updateToggleColor(toggle11, autoExclusive)
+updateToggleColor(toggle12, autoDivine)
 updateToggleColor(toggleIndex, autoIndex)
-updateToggleColor(toggle12, autoUpgradeBrainrots)
 
 arrowButton.MouseButton1Click:Connect(function()
     indexExpanded = not indexExpanded
@@ -396,54 +396,60 @@ toggle2.MouseButton1Click:Connect(function()
 end)
 
 toggle3.MouseButton1Click:Connect(function()
+    autoUpgradeBrainrots = not autoUpgradeBrainrots
+    updateToggleColor(toggle12, autoUpgradeBrainrots)
+    saveState()
+end)
+
+toggle4.MouseButton1Click:Connect(function()
     autoRebirth = not autoRebirth
     updateToggleColor(toggle3, autoRebirth)
     saveState()
 end)
 
-toggle4.MouseButton1Click:Connect(function()
+toggle5.MouseButton1Click:Connect(function()
     autoVacuum = not autoVacuum
     updateToggleColor(toggle4, autoVacuum)
     saveState()
 end)
 
-toggle5.MouseButton1Click:Connect(function()
+toggle6.MouseButton1Click:Connect(function()
     autoSpeed = not autoSpeed
     updateToggleColor(toggle5, autoSpeed)
     saveState()
 end)
 
-toggle6.MouseButton1Click:Connect(function()
+toggle7.MouseButton1Click:Connect(function()
     autoCarry = not autoCarry
     updateToggleColor(toggle6, autoCarry)
     saveState()
 end)
 
-toggle7.MouseButton1Click:Connect(function()
+toggle8.MouseButton1Click:Connect(function()
     autoSecret = not autoSecret
     updateToggleColor(toggle7, autoSecret)
     saveState()
 end)
 
-toggle8.MouseButton1Click:Connect(function()
+toggle9.MouseButton1Click:Connect(function()
     autoCelestial = not autoCelestial
     updateToggleColor(toggle8, autoCelestial)
     saveState()
 end)
 
-toggle9.MouseButton1Click:Connect(function()
+toggle10.MouseButton1Click:Connect(function()
     autoAdmin = not autoAdmin
     updateToggleColor(toggle9, autoAdmin)
     saveState()
 end)
 
-toggle10.MouseButton1Click:Connect(function()
+toggle11.MouseButton1Click:Connect(function()
     autoExclusive = not autoExclusive
     updateToggleColor(toggle10, autoExclusive)
     saveState()
 end)
 
-toggle11.MouseButton1Click:Connect(function()
+toggle12.MouseButton1Click:Connect(function()
     autoDivine = not autoDivine
     updateToggleColor(toggle11, autoDivine)
     saveState()
@@ -452,12 +458,6 @@ end)
 toggleIndex.MouseButton1Click:Connect(function()
     autoIndex = not autoIndex
     updateToggleColor(toggleIndex, autoIndex)
-    saveState()
-end)
-
-toggle12.MouseButton1Click:Connect(function()
-    autoUpgradeBrainrots = not autoUpgradeBrainrots
-    updateToggleColor(toggle12, autoUpgradeBrainrots)
     saveState()
 end)
 
